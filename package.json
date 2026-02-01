@@ -1,0 +1,19 @@
+{
+  "name": "obsidian-builtsimple",
+  "version": "0.1.0",
+  "description": "Research assistant for Obsidian - search PubMed, ArXiv, and Wikipedia from your notes",
+  "main": "main.js",
+  "scripts": {
+    "dev": "node esbuild.config.mjs",
+    "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production"
+  },
+  "keywords": ["obsidian", "research", "pubmed", "arxiv", "wikipedia"],
+  "author": "Built-Simple.ai",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "esbuild": "0.17.3",
+    "obsidian": "latest",
+    "typescript": "5.0.0"
+  }
+}

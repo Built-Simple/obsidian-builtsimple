@@ -1,0 +1,10 @@
+{
+  "id": "obsidian-builtsimple",
+  "name": "Built Simple Research",
+  "version": "0.1.0",
+  "minAppVersion": "1.0.0",
+  "description": "Search PubMed, ArXiv, and Wikipedia directly from your notes",
+  "author": "Built-Simple.ai",
+  "authorUrl": "https://built-simple.ai",
+  "isDesktopOnly": false
+}
