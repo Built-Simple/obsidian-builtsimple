@@ -14,6 +14,19 @@ const DEFAULT_SETTINGS: BuiltSimpleSettings = {
     maxResults: 5
 }
 
+interface SearchResult {
+    title?: string;
+    abstract?: string;
+    snippet?: string;
+    summary?: string;
+    authors?: string[];
+    year?: string;
+    date?: string;
+    url?: string;
+    link?: string;
+    source?: string;
+}
+
 export default class BuiltSimplePlugin extends Plugin {
     settings: BuiltSimpleSettings;
 
@@ -21,7 +34,7 @@ export default class BuiltSimplePlugin extends Plugin {
         await this.loadSettings();
 
         // Add ribbon icon for quick search
-        this.addRibbonIcon('search', 'Built Simple Research', async () => {
+        this.addRibbonIcon('search', 'Built Simple Research', () => {
             new SearchModal(this.app, this).open();
         });
 
@@ -29,7 +42,7 @@ export default class BuiltSimplePlugin extends Plugin {
         this.addCommand({
             id: 'search-selection',
             name: 'Search selected text',
-            editorCallback: async (editor: Editor, view: MarkdownView) => {
+            editorCallback: (editor: Editor, view: MarkdownView) => {
                 const selection = editor.getSelection();
                 if (selection) {
                     new SearchModal(this.app, this, selection).open();
@@ -83,7 +96,7 @@ class SearchModal extends Modal {
     plugin: BuiltSimplePlugin;
     query: string;
     source: string;
-    results: any[] = [];
+    resultsContainer: HTMLElement | null = null;
 
     constructor(app: App, plugin: BuiltSimplePlugin, query: string = '', source: string = 'all') {
         super(app);
@@ -95,65 +108,61 @@ class SearchModal extends Modal {
     onOpen() {
         const { contentEl } = this;
         contentEl.empty();
+        contentEl.addClass('builtsimple-modal');
         contentEl.createEl('h2', { text: 'Built Simple Research' });
 
         // Search input
-        const inputContainer = contentEl.createDiv({ cls: 'search-input-container' });
+        const inputContainer = contentEl.createDiv({ cls: 'builtsimple-input-container' });
         const searchInput = inputContainer.createEl('input', {
             type: 'text',
             placeholder: 'Enter search query...',
-            value: this.query
+            value: this.query,
+            cls: 'builtsimple-search-input'
         });
-        searchInput.style.width = '100%';
-        searchInput.style.padding = '8px';
-        searchInput.style.marginBottom = '10px';
 
         // Source selector
-        const sourceContainer = contentEl.createDiv({ cls: 'source-selector' });
-        const sourceSelect = sourceContainer.createEl('select');
-        sourceSelect.style.marginBottom = '10px';
-        
+        const sourceContainer = contentEl.createDiv({ cls: 'builtsimple-source-selector' });
+        const sourceSelect = sourceContainer.createEl('select', { cls: 'builtsimple-source-select' });
+
         const sources = [
-            { value: 'all', label: 'All Sources' },
+            { value: 'all', label: 'All sources' },
             { value: 'pubmed', label: 'PubMed' },
             { value: 'arxiv', label: 'ArXiv' },
             { value: 'wikipedia', label: 'Wikipedia' }
         ];
-        
+
         sources.forEach(s => {
             const option = sourceSelect.createEl('option', { value: s.value, text: s.label });
             if (s.value === this.source) option.selected = true;
         });
 
         // Search button
-        const searchBtn = contentEl.createEl('button', { text: 'Search' });
-        searchBtn.style.marginRight = '10px';
-        searchBtn.onclick = async () => {
+        const searchBtn = contentEl.createEl('button', { text: 'Search', cls: 'builtsimple-search-btn' });
+        searchBtn.onclick = () => {
             const query = searchInput.value;
             const source = sourceSelect.value;
             if (query) {
-                await this.performSearch(query, source);
+                void this.performSearch(query, source);
             }
         };
 
         // Results container
-        const resultsContainer = contentEl.createDiv({ cls: 'results-container' });
-        resultsContainer.id = 'search-results';
+        this.resultsContainer = contentEl.createDiv({ cls: 'builtsimple-results-container' });
 
         // Auto-search if query provided
         if (this.query) {
             searchInput.value = this.query;
-            this.performSearch(this.query, this.source);
+            void this.performSearch(this.query, this.source);
         }
     }
 
     async performSearch(query: string, source: string) {
-        const resultsEl = document.getElementById('search-results');
-        if (!resultsEl) return;
-        
-        resultsEl.innerHTML = '<p>Searching...</p>';
-        
-        const results: any[] = [];
+        if (!this.resultsContainer) return;
+
+        this.resultsContainer.empty();
+        this.resultsContainer.createEl('p', { text: 'Searching...' });
+
+        const results: SearchResult[] = [];
         const limit = this.plugin.settings.maxResults;
 
         try {
@@ -178,13 +187,15 @@ class SearchModal extends Modal {
                 }
             }
 
-            this.displayResults(results, resultsEl);
+            this.displayResults(results, this.resultsContainer);
         } catch (error) {
-            resultsEl.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+            this.resultsContainer.empty();
+            const errorEl = this.resultsContainer.createEl('p', { cls: 'builtsimple-error' });
+            errorEl.setText(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
     }
 
-    async searchPubMed(query: string, limit: number): Promise<any[]> {
+    async searchPubMed(query: string, limit: number): Promise<SearchResult[]> {
         const response = await requestUrl({
             url: `https://pubmed.built-simple.ai/search?q=${encodeURIComponent(query)}&limit=${limit}`,
             method: 'GET'
@@ -192,7 +203,7 @@ class SearchModal extends Modal {
         return response.json.results || [];
     }
 
-    async searchArxiv(query: string, limit: number): Promise<any[]> {
+    async searchArxiv(query: string, limit: number): Promise<SearchResult[]> {
         const response = await requestUrl({
             url: `https://arxiv.built-simple.ai/search?q=${encodeURIComponent(query)}&limit=${limit}`,
             method: 'GET'
@@ -200,7 +211,7 @@ class SearchModal extends Modal {
         return response.json.results || [];
     }
 
-    async searchWikipedia(query: string, limit: number): Promise<any[]> {
+    async searchWikipedia(query: string, limit: number): Promise<SearchResult[]> {
         const response = await requestUrl({
             url: `https://wikipedia.built-simple.ai/search?q=${encodeURIComponent(query)}&limit=${limit}`,
             method: 'GET'
@@ -208,54 +219,50 @@ class SearchModal extends Modal {
         return response.json.results || [];
     }
 
-    displayResults(results: any[], container: HTMLElement) {
-        container.innerHTML = '';
-        
+    displayResults(results: SearchResult[], container: HTMLElement) {
+        container.empty();
+
         if (results.length === 0) {
             container.createEl('p', { text: 'No results found.' });
             return;
         }
 
         results.forEach(result => {
-            const resultDiv = container.createDiv({ cls: 'search-result' });
-            resultDiv.style.padding = '10px';
-            resultDiv.style.marginBottom = '10px';
-            resultDiv.style.border = '1px solid var(--background-modifier-border)';
-            resultDiv.style.borderRadius = '5px';
-            
+            const resultDiv = container.createDiv({ cls: 'builtsimple-result' });
+
             // Source badge
-            const badge = resultDiv.createEl('span', { text: result.source });
-            badge.style.fontSize = '0.8em';
-            badge.style.padding = '2px 6px';
-            badge.style.borderRadius = '3px';
-            badge.style.backgroundColor = 'var(--interactive-accent)';
-            badge.style.color = 'var(--text-on-accent)';
-            badge.style.marginRight = '8px';
-            
+            const badge = resultDiv.createEl('span', {
+                text: result.source || 'Unknown',
+                cls: 'builtsimple-badge'
+            });
+
             // Title
-            const title = resultDiv.createEl('strong', { text: result.title || 'Untitled' });
-            title.style.display = 'block';
-            title.style.marginTop = '5px';
-            
+            const title = resultDiv.createEl('strong', {
+                text: result.title || 'Untitled',
+                cls: 'builtsimple-title'
+            });
+
             // Abstract/snippet
             if (result.abstract || result.snippet || result.summary) {
-                const snippet = resultDiv.createEl('p', { 
-                    text: (result.abstract || result.snippet || result.summary).substring(0, 200) + '...' 
+                const snippetText = (result.abstract || result.snippet || result.summary || '').substring(0, 200) + '...';
+                resultDiv.createEl('p', {
+                    text: snippetText,
+                    cls: 'builtsimple-snippet'
                 });
-                snippet.style.fontSize = '0.9em';
-                snippet.style.color = 'var(--text-muted)';
             }
-            
+
             // Insert button
-            const insertBtn = resultDiv.createEl('button', { text: 'Insert Citation' });
-            insertBtn.style.marginTop = '5px';
+            const insertBtn = resultDiv.createEl('button', {
+                text: 'Insert citation',
+                cls: 'builtsimple-insert-btn'
+            });
             insertBtn.onclick = () => {
                 this.insertCitation(result);
             };
         });
     }
 
-    insertCitation(result: any) {
+    insertCitation(result: SearchResult) {
         const view = this.app.workspace.getActiveViewOfType(MarkdownView);
         if (view) {
             const citation = this.formatCitation(result);
@@ -265,7 +272,7 @@ class SearchModal extends Modal {
         }
     }
 
-    formatCitation(result: any): string {
+    formatCitation(result: SearchResult): string {
         const title = result.title || 'Untitled';
         const authors = result.authors?.join(', ') || 'Unknown';
         const year = result.year || result.date?.substring(0, 4) || '';
@@ -299,11 +306,13 @@ class BuiltSimpleSettingTab extends PluginSettingTab {
         const { containerEl } = this;
         containerEl.empty();
 
-        containerEl.createEl('h2', { text: 'Built Simple Research Settings' });
+        new Setting(containerEl)
+            .setName('Built Simple Research settings')
+            .setHeading();
 
         new Setting(containerEl)
             .setName('Enable PubMed')
-            .setDesc('Search biomedical literature from PubMed')
+            .setDesc('Search biomedical literature from PubMed.')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.pubmedEnabled)
                 .onChange(async (value) => {
@@ -313,7 +322,7 @@ class BuiltSimpleSettingTab extends PluginSettingTab {
 
         new Setting(containerEl)
             .setName('Enable ArXiv')
-            .setDesc('Search preprints from ArXiv')
+            .setDesc('Search preprints from ArXiv.')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.arxivEnabled)
                 .onChange(async (value) => {
@@ -323,7 +332,7 @@ class BuiltSimpleSettingTab extends PluginSettingTab {
 
         new Setting(containerEl)
             .setName('Enable Wikipedia')
-            .setDesc('Search Wikipedia articles')
+            .setDesc('Search Wikipedia articles.')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.wikipediaEnabled)
                 .onChange(async (value) => {
@@ -332,8 +341,8 @@ class BuiltSimpleSettingTab extends PluginSettingTab {
                 }));
 
         new Setting(containerEl)
-            .setName('Max Results')
-            .setDesc('Maximum number of results per source')
+            .setName('Maximum results')
+            .setDesc('Maximum number of results per source.')
             .addSlider(slider => slider
                 .setLimits(1, 20, 1)
                 .setValue(this.plugin.settings.maxResults)

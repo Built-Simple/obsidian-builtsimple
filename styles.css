@@ -1,0 +1,65 @@
+/* Built Simple Research Plugin Styles */
+
+.builtsimple-modal {
+    /* Modal container styles handled by Obsidian */
+}
+
+.builtsimple-input-container {
+    margin-bottom: 10px;
+}
+
+.builtsimple-search-input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+}
+
+.builtsimple-source-selector {
+    margin-bottom: 10px;
+}
+
+.builtsimple-source-select {
+    margin-bottom: 10px;
+}
+
+.builtsimple-search-btn {
+    margin-right: 10px;
+}
+
+.builtsimple-results-container {
+    margin-top: 10px;
+}
+
+.builtsimple-result {
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 5px;
+}
+
+.builtsimple-badge {
+    font-size: 0.8em;
+    padding: 2px 6px;
+    border-radius: 3px;
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    margin-right: 8px;
+}
+
+.builtsimple-title {
+    display: block;
+    margin-top: 5px;
+}
+
+.builtsimple-snippet {
+    font-size: 0.9em;
+    color: var(--text-muted);
+}
+
+.builtsimple-insert-btn {
+    margin-top: 5px;
+}
+
+.builtsimple-error {
+    color: var(--text-error);
+}
