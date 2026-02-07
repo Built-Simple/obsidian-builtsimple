@@ -1,7 +1,7 @@
 {
   "id": "builtsimple",
   "name": "Built Simple Research",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "minAppVersion": "1.0.0",
   "description": "Search PubMed, ArXiv, and Wikipedia directly from your notes.",
   "author": "Built-Simple.ai",
