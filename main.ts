@@ -34,7 +34,7 @@ export default class BuiltSimplePlugin extends Plugin {
         await this.loadSettings();
 
         // Add ribbon icon for quick search
-        this.addRibbonIcon('search', 'Built Simple Research', () => {
+        this.addRibbonIcon('search', 'Search research databases', () => {
             new SearchModal(this.app, this).open();
         });
 
@@ -55,7 +55,7 @@ export default class BuiltSimplePlugin extends Plugin {
         // Add command: PubMed search
         this.addCommand({
             id: 'pubmed-search',
-            name: 'Search PubMed',
+            name: 'Search biomedical literature',
             callback: () => {
                 new SearchModal(this.app, this, '', 'pubmed').open();
             }
@@ -64,7 +64,7 @@ export default class BuiltSimplePlugin extends Plugin {
         // Add command: ArXiv search
         this.addCommand({
             id: 'arxiv-search',
-            name: 'Search ArXiv',
+            name: 'Search preprints',
             callback: () => {
                 new SearchModal(this.app, this, '', 'arxiv').open();
             }
@@ -73,7 +73,7 @@ export default class BuiltSimplePlugin extends Plugin {
         // Add command: Wikipedia search
         this.addCommand({
             id: 'wikipedia-search',
-            name: 'Search Wikipedia',
+            name: 'Search encyclopedia',
             callback: () => {
                 new SearchModal(this.app, this, '', 'wikipedia').open();
             }
@@ -109,7 +109,7 @@ class SearchModal extends Modal {
         const { contentEl } = this;
         contentEl.empty();
         contentEl.addClass('builtsimple-modal');
-        contentEl.createEl('h2', { text: 'Built Simple Research' });
+        contentEl.createEl('h2', { text: 'Search research databases' });
 
         // Search input
         const inputContainer = contentEl.createDiv({ cls: 'builtsimple-input-container' });
@@ -231,13 +231,13 @@ class SearchModal extends Modal {
             const resultDiv = container.createDiv({ cls: 'builtsimple-result' });
 
             // Source badge
-            const badge = resultDiv.createEl('span', {
+            resultDiv.createEl('span', {
                 text: result.source || 'Unknown',
                 cls: 'builtsimple-badge'
             });
 
             // Title
-            const title = resultDiv.createEl('strong', {
+            resultDiv.createEl('strong', {
                 text: result.title || 'Untitled',
                 cls: 'builtsimple-title'
             });
@@ -307,12 +307,12 @@ class BuiltSimpleSettingTab extends PluginSettingTab {
         containerEl.empty();
 
         new Setting(containerEl)
-            .setName('Built Simple Research settings')
+            .setName('Data sources')
             .setHeading();
 
         new Setting(containerEl)
-            .setName('Enable PubMed')
-            .setDesc('Search biomedical literature from PubMed.')
+            .setName('PubMed')
+            .setDesc('Search biomedical literature.')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.pubmedEnabled)
                 .onChange(async (value) => {
@@ -321,8 +321,8 @@ class BuiltSimpleSettingTab extends PluginSettingTab {
                 }));
 
         new Setting(containerEl)
-            .setName('Enable ArXiv')
-            .setDesc('Search preprints from ArXiv.')
+            .setName('ArXiv')
+            .setDesc('Search preprints.')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.arxivEnabled)
                 .onChange(async (value) => {
@@ -331,8 +331,8 @@ class BuiltSimpleSettingTab extends PluginSettingTab {
                 }));
 
         new Setting(containerEl)
-            .setName('Enable Wikipedia')
-            .setDesc('Search Wikipedia articles.')
+            .setName('Wikipedia')
+            .setDesc('Search encyclopedia articles.')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.wikipediaEnabled)
                 .onChange(async (value) => {
@@ -341,8 +341,8 @@ class BuiltSimpleSettingTab extends PluginSettingTab {
                 }));
 
         new Setting(containerEl)
-            .setName('Maximum results')
-            .setDesc('Maximum number of results per source.')
+            .setName('Results per source')
+            .setDesc('Maximum number of results to show from each source.')
             .addSlider(slider => slider
                 .setLimits(1, 20, 1)
                 .setValue(this.plugin.settings.maxResults)
