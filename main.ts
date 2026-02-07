@@ -311,7 +311,7 @@ class BuiltSimpleSettingTab extends PluginSettingTab {
             .setHeading();
 
         new Setting(containerEl)
-            .setName('PubMed')
+            .setName('Pubmed')
             .setDesc('Search biomedical literature.')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.pubmedEnabled)
@@ -321,7 +321,7 @@ class BuiltSimpleSettingTab extends PluginSettingTab {
                 }));
 
         new Setting(containerEl)
-            .setName('ArXiv')
+            .setName('Arxiv')
             .setDesc('Search preprints.')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.arxivEnabled)
